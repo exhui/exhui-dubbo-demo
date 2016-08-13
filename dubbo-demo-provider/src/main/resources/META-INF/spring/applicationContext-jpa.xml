@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:jpa="http://www.springframework.org/schema/data/jpa"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+	http://www.springframework.org/schema/beans/spring-beans-4.1.xsd
+	http://www.springframework.org/schema/tx
+	http://www.springframework.org/schema/tx/spring-tx-4.1.xsd
+	http://www.springframework.org/schema/data/jpa
+	http://www.springframework.org/schema/data/jpa/spring-jpa-1.3.xsd"
+	default-autowire="byName" default-lazy-init="false">
+	   
+	<!-- Jpa Entity Manager 配置 -->
+ 	<bean id="entityManagerFactory" class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean">
+           <!-- 指定数据源 -->
+        <property name="dataSource" ref="dataSource"/>
+        <!-- 指定Jpa持久化实现厂商类,这里以Hibernate为例 -->
+        <property name="jpaVendorAdapter" ref="hibernateJpaVendorAdapter"/>
+        <!-- 指定Entity实体类包路径 -->
+        <property name="packagesToScan" >
+            <array>
+                <value>com.exhui.dubbo.demo.entity</value>
+            </array>
+    </property>
+    <!-- 指定JPA属性；如Hibernate中指定是否显示SQL的是否显示、方言等 -->
+    <property name="jpaProperties">
+        <props>
+            <prop key="hibernate.dialect">org.hibernate.dialect.MySQLDialect</prop>
+            <prop key="hibernate.ejb.naming_strategy">org.hibernate.cfg.ImprovedNamingStrategy</prop>
+            <prop key="hibernate.hbm2ddl.auto">validate</prop>
+            <!--合并SQL -->
+            <prop key="hibernate.default_batch_fetch_size">50</prop>
+            <!-- 二级缓存 -->
+            <prop key="hibernate.cache.region.factory_class">org.hibernate.cache.ehcache.EhCacheRegionFactory</prop>
+            <!--查询缓存 -->
+            <prop key="hibernate.cache.use_query_cache">true</prop>
+            <!-- 查询统计 -->
+            <prop key="hibernate.generate_statistics">${hibernate.generate_statistics}</prop>
+            <prop key="hibernate.show_sql">${hibernate.show_sql}</prop>
+            <prop key="hibernate.format_sql">${hibernate.format_sql}</prop>
+            <!-- ehcache路径 -->
+            <prop key="hibernate.cache.provider_configuration_file_resource_path">/cache/ehcache-base.xml</prop>
+        </props>
+        </property>
+        <property name="jpaDialect">
+            <bean class="org.springframework.orm.jpa.vendor.HibernateJpaDialect"/>
+        </property>
+
+    </bean>  
+    
+     <!-- Hibernate对Jpa的实现 -->
+    <bean id="hibernateJpaVendorAdapter" class="org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter"/>
+	   
+	<!-- Spring Data Jpa配置 -->
+    <jpa:repositories base-package="com.exhui.dubbo.demo.dao" entity-manager-factory-ref="entityManagerFactory" transaction-manager-ref="transactionManager"/>
+
+    <!--<jpa:repositories-->
+            <!--base-package="com.seewoedu.dubbo.demo.dao"-->
+            <!--repository-impl-postfix="Impl"-->
+            <!--factory-class="com.seewo.core.repository.support.SimpleBaseJpaRepositoryFactoryBean"-->
+            <!--entity-manager-factory-ref="entityManagerFactory"-->
+            <!--transaction-manager-ref="transactionManager">-->
+    <!--</jpa:repositories>-->
+
+    <!-- Jpa 事务配置 -->
+    <bean id="transactionManager" class="org.springframework.orm.jpa.JpaTransactionManager">
+		<property name="entityManagerFactory" ref="entityManagerFactory"/>
+	</bean>
+	
+	<!-- 开启注解事务 -->
+	<tx:annotation-driven transaction-manager="transactionManager" proxy-target-class="true" />
+
+	<!-- JSR303 Validator定义 -->
+ 	<bean id="validator" class="org.springframework.validation.beanvalidation.LocalValidatorFactoryBean" />
+</beans>
